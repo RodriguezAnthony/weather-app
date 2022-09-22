@@ -1,6 +1,7 @@
 const express = require('express')
 const path = require('path')
 const hbs = require('hbs')
+const forecast = require('../src/utils/forecast')
 
 const app = express()
 
@@ -41,11 +42,31 @@ app.get('/help', (req, res) =>{
 })
 
 app.get('/weather', (req, res) => {
-    res.send({
-        forecast: 'It is snowing',
-        location: 'New York'
+    if(!req.query.city) {
+        return res.send({
+            error: 'You must provide an address!'
+        })
+    }
+
+    forecast(req.query.city, (error, data) => {
+        if(error) return res.send({ error })
+        
+        res.send({
+            forecast: `It is currently ${data.current.temperature} in ${data.location.name}`,
+            location: data.location.name,
+            city: req.query.city
+        })
     })
+
+
+    // res.send({
+    //     forecast: 'It is snowing',
+    //     location: 'New York',
+    //     city: req.query.city
+    // })
 })
+
+
 
 app.get('/help/*', (req, res) => {
     res.render('404', {
